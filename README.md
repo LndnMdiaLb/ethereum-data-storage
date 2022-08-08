@@ -1,28 +1,101 @@
-# Ethereum Data Storage
+## RLP encoding / decoding
 
-An interactive walk through of the processes through which Ethereum encodes and serializes data structures into sequences of Bytes, stores them, and retrieves them. In this repository you will find information about **Recursive Length Prefix (RLP)** encoding, **Hex Prefix** encoding, **Merkle Patricia Tries** as well as examples of **Basic Radix Tries**
+Recursive Length Prefix is a custom Ethereum encoding system that accepts nested structures and expresses them in a series of bytes that can then be decoded back into the original structure. RLP only recongines **2 types of "items"**. A **_"byte string"_**, a series of bytes of length 1+ and a **_list_**, an a array of any combination of _byte strings_ and/or _lists_. RLP is agnostic of the data you encode. It has no knoweledge of the content. It's up to the consumer of the decoded content to interpret it.
 
-You will also find working examples of reconstructed Ethereum **Transaction Trie**, **Transaction Receipt Trie** as well as an example of a reconstructed **Storage Trie** powered by the use of Hardhat's in-process network.
+It _prefixes_ items with a byte, or multiple bytes, that describe the item and its length. Hence _Length Prefix_. It is _Recursive_ in that _lists_ can contain _lists_ and every depth is itself encoded. When encoding parent items, the _length prefix_ of the parent will take into account the _length prefix_ bytes of the child when calculating its own prefix.
 
-The Libraries used to varying degrees are:
+It will take a structure such as :
 
-- [rlp](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/rlp)
-- [@ethereumjs/trie](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie)
-- [level](https://github.com/Level/level)
-- [@ethereumjs/tx](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/tx)
-- [ethers.js](https://github.com/ethers-io/ethers.js/)
-- [hardhat](https://github.com/NomicFoundation/hardhat)
+    [ <Buffer ab cd ef>,
+        [ <Buffer aa bb cc>, <Buffer 01>, <Buffer ff>,
+            [ <Buffer 01 02 03> ]
+        ],
+        <Buffer 89 45 ef >
+    ]
 
-The repo is designed to accompany the DeveloperDao Workshop video recording. Branches are structured in such a way as to build up knowledge. The branch order is `rlp`, `radix-trie`, `merkle-patricia-trie`, `eth-txns-trie`, `eth-txns-receipts-trie`, `eth-storage-trie`. The complete file list is available on branch `master`. If you are follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject while branch `master` contains all information.
+And express it like :
 
-## RLP encoding
+    <Buffer d5 83 ab cd ef cc 83 aa bb cc 01 81 ff c4 83 01 02 03 83 89 45 ef>
 
-## Radix Tries
+### Encoding Rules
 
-## Merkle Patricia Tries
+RLP encoding relies on **6 Rules**
 
-## Transaction Trie
+#### Single Byte Rules
 
-## Transaction Receipt Trie
+- **Rule 1** : A single Byte whose value is in the ASCII range does not require a _length prefix_
 
-## Storage Trie
+- **Rule 2** : Empty values are encoded as the byte 80 (example: null, '', an empty byte). 0 is **not** an empty value
+
+#### Multiple Byte Rules (byte string)
+
+- **Rule 3** : To encode a _byte string_ of length <= 55. we start from the hex value **80** & add the length of the byte string
+  you may encounter this rule expressed as :
+
+  - `0x80+length(string) , string`
+
+- **Rule 4** : To encode a _byte string_ of > 55. We take the length of the byte string. we start from the hex value **b7** & add the length of the length of the string and then concatenate that length in bytes.
+  you may encounter this rule expressed as :
+
+  - `0xb7+length(length(string)) , length(string) , string`
+
+#### List Rules (array)
+
+- **Rule 5** : To encode a _list_ of length <= 55. we first apply RLP encoding on it's list items, then start from the hex value **c0** & add the length of all the bytes in the list
+  you may encounter this rule expressed as :
+
+  - `0xc0+length(list) , list`
+
+- **Rule 6** : To encode a _list_ of length > 55. we first apply RLP encoding on it's list items, then. We then take the length of the list string. we start from the hex value **f7** & add the length of the length of the string and then concatenate that length in bytes.
+  you may encounter this rule expressed as :
+
+  - `0xf7+length(length(list)) , length(list) , list`
+
+A useful function for calculating prefix information
+
+    function calculatePrefix (ruleStart, numberOfBytes){
+      return (parseInt(ruleStart, 16) + numberOfBytes).toString(16)
+    }
+
+    function calculateByteLength (prefix, ruleStart){
+      return (parseInt(prefix, 16) - parseInt(ruleStart, 16))
+    }
+
+The encoded bytes for each rule fall in the following range (what rlp prefixes mean when decoding).
+
+- rule 1: `[ 0x00 ... 0x7f ]` - **128** possible byte values
+- rule 2: `0x80` - **1** possible byte value
+- rule 3: `[ 0x81 ... 0xb7 ]` - **55** possible byte values
+- rule 4: `[ 0xb8 ... 0xbf ]` - **8** possible byte values
+- rule 5: `[ 0xc0 ... 0xf7 ]` - **55** possible byte values
+- rule 6: `[ 0xf8 ... 0xff ]` - **8** possible byte values
+
+### How RLP is used for different Data Structures
+
+Examples of how RLP is agnostic of the data you encode:
+
+RLP encodes transactions. Example of signatures of an rlp encoded transactions
+
+    Legacy :	[ nonce, gasPrice, gasLimit, to, value, data, init, v,r,s ]
+
+    Type 1 :    [ chainId, nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR, signatureS ]
+
+    Type 2 :    [ chain_id, nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, destination, amount, data, access_list, signature_y_parity, signature_r, signature_s ]
+
+    receipt:    [ status, cumulativeGasUsed, logsBloom, logs ]
+
+RLP is also used to encode Trie Structures whose information can look like this :
+
+    [ <Buffer 20 cd ef>,
+        [ <Buffer,
+          <Buffer,
+          <Buffer,
+          <Buffer,
+          <Buffer,
+          <Buffer,
+          <Buffer,
+          ...
+          [  <Buffer 1b e2 03> ]
+        ],
+        <Buffer 04 >
+    ]
