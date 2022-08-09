@@ -18,10 +18,6 @@ class TrieNode {
     }
 
     put(key, value){
-        /* 
-            from now on we will reffer to individual characters as nibbles 
-            as the key (previously path) is a hex string
-        */
         const nibble = key[0];
         /* we position the nibble into the branch index by its decimal representation */
         const decimal = parseInt(nibble, 16);
@@ -34,9 +30,7 @@ class TrieNode {
             if(key.length!=1) this._branches[decimal].put(key.substring(1), value);
         }
     }
-    /*
-        we now can retrive value value by key
-    */
+
     get(key){
         const nibble = key[0];
         const decimal = parseInt(nibble, 16);
@@ -71,22 +65,11 @@ const trie = new TrieNode;
 trie.put('fa105feaa8fe','ab45d78ab45f');
 trie.put('45eabb6500fc','3f56cbaa3ee9');
 
-console.log('\n');
-
-console.log(trie.get('fa105feaa8fe'));
-console.log(trie.get('45eabb6500fc'));
-
-console.log('\n');
-
-console.log(trie);
-
-console.log('\n');
-
 /* 
     Generate random entries
 */
 
-
+// 100000
 const numberOfEntries = 20;
 
 function addRandomHexStrings(n){
@@ -123,17 +106,55 @@ const linearDatabase = addRandomHexStrings(numberOfEntries);
 linearDatabase.forEach(({key,value})=>trie.put(key,value));
 
 
-/* 
-    create our Radix Trie Databse
-*/
-function saveToDB(){
-    const db = path.resolve(__dirname, './db');
-    if (!fs.existsSync(db)){
-        fs.mkdirSync(db);
+/*********************
+ 
+    Speed test searching our Databases
+
+*********************/
+
+
+function speedTest(){
+
+    /* random database entry */
+
+    const randomEntry = linearDatabase[Math.floor(Math.random()*linearDatabase.length)];
+
+    console.log(`\n`);
+    console.log(`using ${linearDatabase.length} database items`);
+    console.log(`\n`);
+
+    let start, end, diff,n;
+
+    /* test linear */
+
+    start = new Date(); 
+    n=10000;
+    while(n--){
+        /* 
+            test array.find     
+        */
+        linearDatabase.find(word=>word==randomEntry)
     }
-    fs.writeFileSync(path.resolve(db, 'linear.json'), JSON.stringify(linearDatabase));
-    fs.writeFileSync(path.resolve(db, 'trie.json'), JSON.stringify(trie));
+    end =  +new Date();
+    diff = end - start;
+
+    console.log(`linear search executed in: ${diff} milliseconds`);
+
+    /* test trie */
+
+    start = new Date(); 
+    n=10000;
+    while(n--){
+        /* 
+            test trie.find     
+        */
+        trie.findPath(randomEntry);
+    }
+    end =  +new Date();  // log end timestamp
+    diff = end - start;
+    console.log(`trie lookup executed in: ${diff} milliseconds`);
+    console.log(`\n\n`);
+
 }
 
-
-saveToDB();
+speedTest()
