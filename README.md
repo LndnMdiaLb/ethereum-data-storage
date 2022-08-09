@@ -1,28 +1,5 @@
-# Ethereum Data Storage
+## Storage & State Tries
 
-An interactive walk through of the processes through which Ethereum encodes and serializes data structures into sequences of Bytes, stores them, and retrieves them. In this repository you will find information about **Recursive Length Prefix (RLP)** encoding, **Hex Prefix** encoding, **Merkle Patricia Tries** as well as examples of **Basic Radix Tries**
+The two "secured" tries in the Ethereum database architecture. That is, for every key / value pair inputted into the database, the key is hashed before putting. State trie and storage trie are the fundamental storage abstraction on which the Ethereum world computer is based. To navigate the state trie you use an `account address` as a key. The value stored at that key value pair are the rlp encoded versions of **nonce**, **balance**, **storageRoot** and **codeHash**. **StorageRoot** and **codeHash** are only relevant to contract accounts. Once a storageRoot is located using the account address, different **contract storage slots** can be accessed to inspect mutable data associated with said contract. When making the rpc request `eth_getStorageAt` you provide amongst other possible parameters the account address and the storage slot key. To action the request the serving node must first search the state trie to locate the account storage root and then use said storage root to locate the storage slot on the particular storage trie.
 
-You will also find working examples of reconstructed Ethereum **Transaction Trie**, **Transaction Receipt Trie** as well as an example of a reconstructed **Storage Trie** powered by the use of Hardhat's in-process network.
-
-The Libraries used to varying degrees are:
-
-- [rlp](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/rlp)
-- [@ethereumjs/trie](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie)
-- [level](https://github.com/Level/level)
-- [@ethereumjs/tx](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/tx)
-- [ethers.js](https://github.com/ethers-io/ethers.js/)
-- [hardhat](https://github.com/NomicFoundation/hardhat)
-
-The repo is designed to accompany the DeveloperDao Workshop video recording. Branches are structured in such a way as to build up knowledge. The branch order is `rlp`, `radix-trie`, `merkle-patricia-trie`, `eth-txns-trie`, `eth-txns-receipts-trie`, `eth-storage-trie`. The complete file list is available on branch `master`. If you are follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject while branch `master` contains all information.
-
-## RLP encoding
-
-## Radix Tries
-
-## Merkle Patricia Tries
-
-## Transaction Trie
-
-## Transaction Receipt Trie
-
-## Storage Trie
+Contract State Variables are applied to the Storage Trie using the rules of [Layout of State Variables](https://docs.soliditylang.org/en/v0.8.11/internals/layout_in_storage.html)
