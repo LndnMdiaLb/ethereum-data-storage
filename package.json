@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "config": {
-    "infura": "0d56a357adde4172ae8e4b00e7fc0ec3",
-    "alchemy": "HChwFwyZ-zif1K3vJunlE3CZRmpkEC1Y"
+    "infura": "xxxx",
+    "alchemy": "xxxx"
   },
   "scripts": {
     "fork:infura": "hardhat node --fork https://mainnet.infura.io/v3/$npm_package_config_infura",
