@@ -1,69 +1,46 @@
+const path = require("path");
 const { Trie } = require("@ethereumjs/trie");
-const rlp = require("rlp");
+
+/*
+    LevelDb is a key value storage.  Its a look up table think excel sheet with 2 columns
+*/
+const {Level} = require("level");
+
 const { keccak256:keccak } = require("ethereum-cryptography/keccak");
 
-const trie = new Trie();
+const dbPath = path.resolve(__dirname,"db");
+const db = new Level(dbPath, { keyEncoding: 'buffer', valueEncoding: 'buffer' });
+
+const trie = new Trie({db});
 
 (async ()=>{
-
-    /* @ethereumjs/trie accepts byte data as both keys and values */
 
     const key = Buffer.from('abcd', 'hex');
     const value = Buffer.from([1]);
 
     await trie.put(key, value); 
 
-    console.log(`\nour Trie root!\n`);
-    console.log(trie.root);
+    const trieNode = await trie.lookupNode(trie.root);
 
-    const trieNode =  await trie.lookupNode(trie.root);
 
-    console.log(`\n`);
-    console.log(trieNode);
-    console.log(`\n`);
-    
-    /* 
-        TrieNode Classes have multiple methods that incorporate RLP & Hex Prefix encoding
-    */
-
-    console.log(`\n\nTrie Node in raw() format :\n`);
-
-    /* 
-        hex prefix serialization
-        Node is expressed in it's minimal format as an array of values
-    */
-
-    console.log(trieNode.raw());
-
-    /* 
-        hex prefix serialization + RLP serializarion
-        array is rlp encoded into a series of bytes
-    */
-
-    console.log(`\n`); 
     console.log(`\nTrie Node in serialize() format :\n`);
 
     console.log(trieNode.serialize());
 
-    console.log(`\n`);
-    /* 
-        rlp.decode to return to raw format
-    */ 
+    console.log(`\nKeccak hash of selialised bytes :\n`);
 
-    // console.log(rlp.decode(trieNode.serialize()));
-    // console.log(`\n`);
-    
-    /* 
-        rlp.encode to raw format to serialize
-    */ 
+    console.log(Buffer.from(keccak(trieNode.serialize())))
 
-    // console.log(rlp.encode(trieNode.raw()));
-    // console.log(`\n`);
+    console.log('\n\nLevelDB database entries:\n');
+
+    const entries = await db.iterator({ limit: 100 }).all()
 
     /* 
-        keccak hash of selialised bytes
-    */ 
+        the level db database stores the serialised data using the hash of the serialised data as a key 
+    */
+    for (const [key, value] of entries) {
+        console.log(`key:\n\n`,key,'\n\nvalue:\n\n',value);
+    }
 
-    // console.log(Buffer.from(keccak(rlp.encode(trieNode.raw()))))
-    // console.log(`\n`);
+    console.log('\n');
 })();

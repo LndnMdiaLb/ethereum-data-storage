@@ -10,7 +10,7 @@
   "scripts": {
     "fork:infura": "hardhat node --fork https://mainnet.infura.io/v3/$npm_package_config_infura",
     "fork:alchemy": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/$npm_package_config_alchemy",
-    "mrkl": "node src/merkle-patricia-trie/index.js"
+    "mrkl": "rm -rf src/merkle-patricia-trie/db && node src/merkle-patricia-trie/index.js"
   },
   "keywords": [],
   "author": "",
