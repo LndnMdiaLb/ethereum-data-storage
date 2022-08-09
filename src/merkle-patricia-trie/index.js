@@ -1,12 +1,12 @@
-const { Trie, LeafNode } = require("@ethereumjs/trie");
+const { Trie } = require("@ethereumjs/trie");
+const rlp = require("rlp");
+const { keccak256:keccak } = require("ethereum-cryptography/keccak");
 
 const trie = new Trie();
 
 (async ()=>{
 
-    /* 
-        @ethereumjs/trie accepts byte data as both keys and values 
-    */
+    /* @ethereumjs/trie accepts byte data as both keys and values */
 
     const key = Buffer.from('abcd', 'hex');
     const value = Buffer.from([1]);
@@ -16,10 +16,6 @@ const trie = new Trie();
     console.log(`\nour Trie root!\n`);
     console.log(trie.root);
 
-    /* 
-        method to find a node in our trie 
-        Trie Class and TrieNode Classes are seperate entities ( compared to basic radix-trie examples ) 
-    */
     const trieNode =  await trie.lookupNode(trie.root);
 
     console.log(`\n`);
@@ -27,9 +23,47 @@ const trie = new Trie();
     console.log(`\n`);
     
     /* 
-        there are 3 types of TrieNode Classes BranchNode, ExtensionNode, LeafNode
+        TrieNode Classes have multiple methods that incorporate RLP & Hex Prefix encoding
     */
-    console.log(`is our node and instance of LeafNode ? ${trieNode instanceof LeafNode}`);
+
+    console.log(`\n\nTrie Node in raw() format :\n`);
+
+    /* 
+        hex prefix serialization
+        Node is expressed in it's minimal format as an array of values
+    */
+
+    console.log(trieNode.raw());
+
+    /* 
+        hex prefix serialization + RLP serializarion
+        array is rlp encoded into a series of bytes
+    */
+
+    console.log(`\n`); 
+    console.log(`\nTrie Node in serialize() format :\n`);
+
+    console.log(trieNode.serialize());
 
     console.log(`\n`);
+    /* 
+        rlp.decode to return to raw format
+    */ 
+
+    // console.log(rlp.decode(trieNode.serialize()));
+    // console.log(`\n`);
+    
+    /* 
+        rlp.encode to raw format to serialize
+    */ 
+
+    // console.log(rlp.encode(trieNode.raw()));
+    // console.log(`\n`);
+
+    /* 
+        keccak hash of selialised bytes
+    */ 
+
+    // console.log(Buffer.from(keccak(rlp.encode(trieNode.raw()))))
+    // console.log(`\n`);
 })();
