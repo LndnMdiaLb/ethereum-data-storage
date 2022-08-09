@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "config": {
-    "infura": "0d56a357adde4172ae8e4b00e7fc0ec3",
-    "alchemy": "HChwFwyZ-zif1K3vJunlE3CZRmpkEC1Y"
+    "infura": "xxxx",
+    "alchemy": "xxxx"
   },
   "scripts": {
     "fork:infura": "hardhat node --fork https://mainnet.infura.io/v3/$npm_package_config_infura",
-    "fork:alchemy": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/$npm_package_config_alchemy"
+    "fork:alchemy": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/$npm_package_config_alchemy",
+    "mrkl": "node src/merkle-patricia-trie/index.js"
   },
   "keywords": [],
   "author": "",

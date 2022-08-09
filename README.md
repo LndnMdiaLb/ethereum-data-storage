@@ -1,28 +1,29 @@
-# Ethereum Data Storage
-
-An interactive walk through of the processes through which Ethereum encodes and serializes data structures into sequences of Bytes, stores them, and retrieves them. In this repository you will find information about **Recursive Length Prefix (RLP)** encoding, **Hex Prefix** encoding, **Merkle Patricia Tries** as well as examples of **Basic Radix Tries**
-
-You will also find working examples of reconstructed Ethereum **Transaction Trie**, **Transaction Receipt Trie** as well as an example of a reconstructed **Storage Trie** powered by the use of Hardhat's in-process network.
-
-The Libraries used to varying degrees are:
-
-- [rlp](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/rlp)
-- [@ethereumjs/trie](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie)
-- [level](https://github.com/Level/level)
-- [@ethereumjs/tx](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/tx)
-- [ethers.js](https://github.com/ethers-io/ethers.js/)
-- [hardhat](https://github.com/NomicFoundation/hardhat)
-
-The repo is designed to accompany the DeveloperDao Workshop video recording. Branches are structured in such a way as to build up knowledge. The branch order is `rlp`, `radix-trie`, `merkle-patricia-trie`, `eth-txns-trie`, `eth-txns-receipts-trie`, `eth-storage-trie`. The complete file list is available on branch `master`. If you are follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject while branch `master` contains all information.
-
-## RLP encoding
-
-## Radix Tries
-
 ## Merkle Patricia Tries
 
-## Transaction Trie
+**Merkle Patricia Tries (MPT)** are the expected way that data will be organised when storing data on the Ethereum blockchain. They are a modification of the Patricia Trie and use 3 structures internally to more efficiently represent paths to data. These are **Extension Nodes**, **Branch Nodes** and **Leaf Nodes**. The trie is secured by the use of _merkling_ to ensure the data is authentic and cannot be falsefied.
 
-## Transaction Receipt Trie
+The **Extension Node** stores a "short cut" down the trie in the form of nibbles that don't have any data branching off them. A **Branch Node** is a regular branch Node. A **Leaf node**, like and Extension Node stores a "short cut" down the trie in the form of nibbles that don't have any data branching off them.
 
-## Storage Trie
+This branch makes use of the `ethereumjs/trie` library to construct and inspect the structure of MPTs and `level` to create a a LevelDB database that stores the trie data.
+
+### Hex Prefixing MPTs in Ethereum
+
+An internal encoding system used by Ethereum MPTs to differentiate between the Node types Extension, Branch and Leaf. It is similar to RLP in that it prefixes data. There are 4 rules.
+
+If a Node is an **Extension Node** whose Nibble short cut is an **even** number it will prefix the data with **00**
+
+ex: `<nibbles abcd>` become `<bytes 00 ab cd>`
+
+If a Node is an **Extension Node** whose Nibble short cut is an **odd** number it will prefix the data with **1**
+
+ex: `<nibbles abc>` become `<bytes 1b cd>`
+
+If a Node is an **Leaf Node** whose Nibble short cut is an **even** number it will prefix the data with **20**
+
+ex: `<nibbles abcd>` become `<bytes 20 ab cd>`
+
+If a Node is an **Leaf Node** whose Nibble short cut is an **odd** number it will prefix the data with **1**
+
+ex: `<nibbles abc>` become `<bytes 3b cd>`
+
+If a Node is an **Branch Node** it receives no prefix
