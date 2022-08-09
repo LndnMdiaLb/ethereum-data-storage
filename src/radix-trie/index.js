@@ -2,30 +2,60 @@ const fs = require("fs");
 const path = require("path");
 
 class TrieNode {
+    /*
+        our key (previously path) data is now stored in the _branches array 
+    */
+    _branches=Array.from({length:16});
+    /*
+        we now can store a value
+    */
+    _value;
 
-    constructor(isTerminator){
-        if(isTerminator) this['16'] = 1;
+    constructor(value){
+        if(value) {
+            this._value = value;
+        };
     }
 
-    put(path){
-        const path_key = path[0];
-        const path_rest = path.substring(1);
-        if(!this[path_key]){
-            this[path_key] = new TrieNode(path_rest.length==0);
-            if(path_rest.length) this[path_key].put(path_rest);
+    put(key, value){
+        /* 
+            from now on we will reffer to individual characters as nibbles 
+            as the key (previously path) is a hex string
+        */
+        const nibble = key[0];
+        /* we position the nibble into the branch index by its decimal representation */
+        const decimal = parseInt(nibble, 16);
+        const existingNode = this._branches[decimal];
+        
+        if(existingNode){
+            key.length==1 ? existingNode._value = value : existingNode.put(key.substring(1), value);
         }else{
-            path_rest.length ? this[path_key].put(path_rest) : this[path_key]['16'] = 1;
+            this._branches[decimal] = new TrieNode(value);
+            if(key.length!=1) this._branches[decimal].put(key.substring(1), value);
         }
-
     }
-   
-    findPath(path){
-        const path_key = path[0];
-        const path_rest = path.substring(1);
-        if(path.length==1){
-            return this[path_key]['16'] && this[path_key];
+    /*
+        we now can retrive value value by key
+    */
+    get(key){
+        const nibble = key[0];
+        const decimal = parseInt(nibble, 16);
+        const existingNode = this._branches[decimal];
+
+        if(existingNode) {
+            return key.length==1 ? existingNode._value : existingNode.get(key.substring(1));
+        } else {
+            return false;
+        }
+    }
+
+    findPath(key){
+        const nibble = key[0];
+        const decimal = parseInt(nibble, 16);
+        if(key.length==1){
+            return this._branches[decimal]._value && this._branches[decimal];
         }else{
-            return this[path_key] && this[path_key].findPath(path_rest)
+            return this._branches[decimal] && this._branches[decimal].findPath(key.substring(1))
         }
     }
 
@@ -38,25 +68,72 @@ class TrieNode {
 
 
 const trie = new TrieNode;
-trie.put('word');
-trie.put('wood');
+trie.put('fa105feaa8fe','ab45d78ab45f');
+trie.put('45eabb6500fc','3f56cbaa3ee9');
 
-/* 
-    create our Radix Trie Databse
-*/
+console.log('\n');
 
-function saveToDB(){
-    const db = path.resolve(__dirname, './db');
-    if (!fs.existsSync(db)){
-        fs.mkdirSync(db);
-    }
-    fs.writeFileSync(path.resolve(db, 'trie.json'), JSON.stringify(trie));
-}
+console.log(trie.get('fa105feaa8fe'));
+console.log(trie.get('45eabb6500fc'));
 
 console.log('\n');
 
 console.log(trie);
 
 console.log('\n');
+
+/* 
+    Generate random entries
+*/
+
+
+const numberOfEntries = 20;
+
+function addRandomHexStrings(n){
+    const hexValues = [...'0123456789abcdef'], tempObject={};
+    function generateHex(){
+        let length = 12;
+        let hexString = Array.from({length}).map(()=>hexValues[Math.floor(Math.random()*hexValues.length)]).join('');
+        return  hexString;       
+    }
+    while(n--){
+        const key = generateHex();
+        const value = generateHex();
+        /* 
+            avoid duplicates 
+            value of tempObject property is irrelevant
+        */
+        tempObject[key]=value;
+    };
+    const arrayOfEntries = [...(Object.entries(tempObject).map(([key,value])=>({key,value})))];
+    return arrayOfEntries;
+}
+
+
+/* 
+    populate linear (array) database 
+*/
+
+const linearDatabase = addRandomHexStrings(numberOfEntries);
+
+/* 
+    populate Trie database 
+*/
+
+linearDatabase.forEach(({key,value})=>trie.put(key,value));
+
+
+/* 
+    create our Radix Trie Databse
+*/
+function saveToDB(){
+    const db = path.resolve(__dirname, './db');
+    if (!fs.existsSync(db)){
+        fs.mkdirSync(db);
+    }
+    fs.writeFileSync(path.resolve(db, 'linear.json'), JSON.stringify(linearDatabase));
+    fs.writeFileSync(path.resolve(db, 'trie.json'), JSON.stringify(trie));
+}
+
 
 saveToDB();
