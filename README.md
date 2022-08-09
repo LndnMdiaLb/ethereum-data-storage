@@ -15,14 +15,90 @@ The Libraries used to varying degrees are:
 
 The repo is designed to accompany the DeveloperDao Workshop video recording. Branches are structured in such a way as to build up knowledge. The branch order is `rlp`, `radix-trie`, `merkle-patricia-trie`, `eth-txns-trie`, `eth-txns-receipts-trie`, `eth-storage-trie`. The complete file list is available on branch `master`. If you are follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject while branch `master` contains all information.
 
-## RLP encoding
+## Fundamental Concepts Review
 
-## Radix Tries
+A quick review of some fundamentals that will help us navigate the information ahead.
 
-## Merkle Patricia Tries
+### Hexadecimal and Decimal Conversion
 
-## Transaction Trie
+    parseInt('ff', 16);     // 255
+    (255).toString(16);     // 'ff'
 
-## Transaction Receipt Trie
+### Nibbles
 
-## Storage Trie
+half a Byte expressed in hex as `0 - f` and `0 - 15` in decimal
+
+### Expressing Bytes
+
+When dealing with blockchain data we are continuously reading and manipulating series of bytes. The bytes. What follows is a quick review of ways will will encounter Bytes expressed in the various libraries.
+
+NodeJS Buffer
+
+    /* Bytes expressed as nodejs Buffer */
+
+    Buffer.from([255]);                     // <Buffer ff>
+    Buffer.from('ff', 'hex');               // <Buffer ff>
+
+Javascript Uint8Array
+
+    /* Bytes expressed as Uint8Array */
+
+    Uint8Array.from([255]);                 // Uint8Array(1) [ 255 ]
+    Uint8Array.from(['0xff']);              // Uint8Array(1) [ 255 ]
+
+DataHex - '0x' prefixed string of an even number of Nibbles
+
+    '0xff'
+    '0x' // is a valid value and represents an empty byte
+
+### Recursion
+
+Functions that call themselves. A very powerful pattern at the heart of the _Composite Pattern_. Recursive functions can create a wide range of nested objects as well as help traverse nested objects.
+
+#### Building a Nested Structure
+
+    const nestedObject = (depth, parent={}, i=1) => {
+        parent.child = depth >= i+1 ? nestedObject(depth, parent.child, ++i ) : {end:1} ;
+        return parent;
+    };
+
+
+    nestedObject(3)
+
+results in:
+
+    {
+        child: {
+            child: {
+                child:{
+                    end: 1
+                }
+            }
+        }
+    }
+
+#### Serialising an existing Nested Structure
+
+    function encode(item) {
+        let output;
+        if (Array.isArray(item)){
+            const innerOutput = item.reduce((output, inner)=>{
+                return output+encode(inner);
+            }, '');
+            output = `A${item.length}${innerOutput}`
+        } else {
+            output = `S${item}`
+        }
+        return output
+    };
+
+encoding the following nested array
+
+    const nestedArray = [  'a','b','c', [ 'd','e', [ 'f' ] ], 'g' ];
+    encode(nestedArray);
+
+results in:
+
+    'A5SaSbScA3SdSeA1SfSg'
+
+A recursive function can be written to decode this string back into its original format
