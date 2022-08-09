@@ -6,7 +6,7 @@ const { Trie } = require("@ethereumjs/trie");
 const {Level} = require("level");
 const { keccak256:keccak } = require("ethereum-cryptography/keccak");
 
-const dbPath = path.resolve(__dirname,"db");
+const dbPath = path.resolve(__dirname, "db");
 const db = new Level(dbPath, { keyEncoding: 'buffer', valueEncoding: 'buffer' });
 
 const trie = new Trie({db});
@@ -15,9 +15,9 @@ const trie = new Trie({db});
 
     await trie.put(Buffer.from('abcd', 'hex'),  Buffer.from([1]));
     /*
-        adding a second entry into the trie. Note the first nibble is different from the last entry
+        adding a second entry into the trie. Note the first 2 nibbles are the same as the last entry
     */ 
-    await trie.put(Buffer.from('bb', 'hex'), Buffer.from([2])); 
+    await trie.put(Buffer.from('abde', 'hex'), Buffer.from([2])); 
 
     const trieNode = await trie.lookupNode(trie.root);
 
