@@ -1,18 +1,13 @@
 const path = require("path");
-const { Trie } = require("@ethereumjs/trie");
-const rlp = require("rlp");
-/*
-    LevelDb is a key value storage.  Its a look up table think excel sheet with 2 columns
-*/
+const { Trie, LeafNode, ExtensionNode, BranchNode, WalkController, LevelDB } = require("@ethereumjs/trie");
+
 const {Level} = require("level");
-const { keccak256:keccak } = require("ethereum-cryptography/keccak");
-
 const dbPath = path.resolve(__dirname,"db");
-const db = new Level(dbPath, { keyEncoding: 'buffer', valueEncoding: 'buffer' });
+const db = new LevelDB(new Level(dbPath, { keyEncoding: 'buffer', valueEncoding: 'buffer' }));
 
-const trie = new Trie({db});
+const trie = new Trie();
 
-(async ()=>{
+async function trieMethods(){
     
     await trie.put(Buffer.from('abcd', 'hex'),  Buffer.from([1])); 
     await trie.put(Buffer.from('ab', 'hex'), Buffer.from([2])); 
@@ -20,50 +15,113 @@ const trie = new Trie({db});
     await trie.put(Buffer.from('abce', 'hex'),  Buffer.from([1])); 
 
     /* 
-        looking for the root node instance by doing a look up of the merkle root 
+        looking for the root node instance by doing a look up of the merkle root on db
     */
     const trieNode = await trie.lookupNode(trie.root);
-    /* 
-        node instance in raw hex prefix encoded format 
-        (not rlp encoded yet. can be done manually or generated using trieNode.serialize()) 
+    /*  
+        get value associated to key
     */
-    // console.log(trieNode);
-    console.log(trieNode.raw());
-    /* 
-        value at branch position 10 is hash 
+    console.log(await trie.get(Buffer.from('abcd', 'hex')))
+    /*  
+        find Path down trie to key, will return a stack amongst other things of nodes traversed
     */
-    console.log(trieNode._branches[10]);
+    console.log(await trie.findPath(Buffer.from('abcd', 'hex')));
+    
 
-    console.log('\n');
     /* 
-        look up hash key on db and retrieve rlp encoded value 
+        using trie.walkTrie method that instantiates WalkController 
     */
-    const dbValue = await db.get(trieNode._branches[10]);
+    // await inspectTrie(trie)
+    /* 
+        instantiate WalkController directly 
+    */
+    // await walkTrie(trie);
+    /* */
+}
+
+
+async function inspectTrie(trie){
+    await trie.walkTrie(trie.root, 
+        async (nodeRef, node, keyProgress, walkController) => {
+            
+            /* 
+                nodeRef : how the node is referenced within the parent
+                can be the equivalent of node.raw() ouput or a hash if  longer than 32 bytes
+            */  
+
+            /* 
+                node instance with .raw() .serialize() methods
+            */  
+
+            /*
+                keyProgress: the nibbles traversed so far in the key (at time of node)
+            */
+
+            /*
+                walkController : class that allows you to traverse trie. note: walkTrie only steps down through trie
+                when prompted too you need to recursively traverse trie ex using: walkController.allChildren(node)
+            */
+
+            walkController.allChildren(node)
+
+            if (node instanceof LeafNode) {
+                console.log("LeafNode");
+                return 
+            }
+
+            if (node instanceof ExtensionNode) {
+                console.log("ExtensionNode");
+                return 
+            }
+            
+            if (node instanceof BranchNode) {
+                console.log("BranchNode");
+                return 
+            } 
+
+        });
+}
+
+/*
+    alternatively to using trie.walkTrie you can instantiate WalkController directly
+*/
+
+async function walkTrie(trie){
+    const wController = new WalkController(async( nodeRef, node, keyProgress) => {
+        console.log(node);
+        await wController.allChildren(node)
+    }, trie, 500);
+    await wController.startWalk(trie.root) 
+}
+
+
+async function dbTrie (){
+
+    const databaseBackedTrie = new Trie({db});
     
+    await databaseBackedTrie.put(Buffer.from('abcd', 'hex'),  Buffer.from([1])); 
+    await databaseBackedTrie.put(Buffer.from('abcd', 'hex'), Buffer.from([2])); 
+    await databaseBackedTrie.put(Buffer.from('abcd', 'hex'), Buffer.from([3])); 
+    await databaseBackedTrie.put(Buffer.from('abcd', 'hex'),  Buffer.from([4])); 
+
     /* 
-        the key of database value is the hash of value
-        and is equal to value stored at trieNode._branches[10]
+        the level db database stores the serialised data using the hash of the serialised data as a key 
     */
-    console.log(Buffer.from(keccak(dbValue)));
-    
-    /* 
-        or create the hash from the db value
-        let nodeOfInterest = await trie.lookupNode(keccak(dbValue)); 
-    */
-    let nodeInstance = await trie.lookupNode(trieNode._branches[10]);
-    console.log(nodeInstance);
-    
-    console.log('\nThe serialised instance of the node is equal to the value staored in the  database\n');
-    console.log(nodeInstance.serialize());
-    console.log(dbValue);
-    /* 
-        the above process repeated only this time nodeInstance is an extension node so we read _value 
-    */
-    nodeInstance = await trie.lookupNode(nodeInstance._value);
-    /* 
-        the nodes that are represented without needing to be hashed.  
-        Their length is more then 32 bytes thus triggering the hashing 
-    */
-    console.log(nodeInstance);
-    console.log(nodeInstance._branches[12]);
-})();
+    const entries = await db._leveldb.iterator({ limit: 100 }).all()
+    const dbKeys=[];
+
+    for (const [key, value] of entries) {
+        console.log(key,' | ', value);
+    }
+
+    for (const [key, value] of entries) {
+        dbKeys.push(key);
+        const newTrie = databaseBackedTrie.copy();
+        newTrie.root = key;
+        console.log(await newTrie.get(Buffer.from('abcd', 'hex')));
+    }
+   
+};
+
+// trieMethods();
+dbTrie();
