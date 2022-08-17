@@ -2,18 +2,16 @@
 pragma solidity >0.5.0 <=0.8.0;
 
 contract Storage {
-    /* 
-        fixed array that can fit in 32 bytes 
-    */
-    uint32[3] array32 = [1, 2, 3];
+    struct StructUintS_SA {
+        string s;
+        string[] sa;
+    }
 
-    /* 
-        add for dynamic array that can fit in 32 bytes 
-    */
-    // uint32[] dynamicArray32 = [1, 2, 3];
+    StructUintS_SA public S_SA;
 
-    /* 
-        add for dynamic array that doesn't fit in 32 bytes 
-    */
-    // uint128[] array128 = [1, 2, 3, 4];
+    constructor() {
+        S_SA.s = "this is a long string that has more than 32 bytes"; // length 49
+        S_SA.sa.push("first string");
+        S_SA.sa.push("second string");
+    }
 }

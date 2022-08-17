@@ -31,6 +31,7 @@ function makeDataHex(hex){
     pad a value to 32 bytes
 */
 function hex32bytes(n){
+    if(n.length == 66) return n;
     return hexZeroPad([Number(n)], 32)
 };
 
@@ -70,23 +71,37 @@ async function addStorage(key){
     
     await trie.put(arrayify(key), rlp.encode(arrayify(binaryValue)));
     
-    console.log('\nnode instance:\n')
-    console.log((await trie.lookupNode(trie.root)))
+    // console.log('\nnode instance:\n')
+    // console.log((await trie.lookupNode(trie.root)))
 }
 
 async function recreateTransactionTrie(){
     /* 
-        fixed array that can fit in 32 bytes 
+        first struct item (string - dynamic): value is length * 2 +1 
     */
     await addStorage(slotKey(0));
     /* 
-        add for dynamic array that can fit in 32 bytes 
+        first struct item content (as much as fits in 32 bytes) 
     */
-    // await addStorage(slotKey(0, 'hashed'));
+    await addStorage(slotKey(0, 'hashed'));
     /* 
-        add for dynamic array that doesn't fit in 32 bytes 
+        first struct item content continued (as much as fits in 32 bytes) 
     */
-    // await addStorage(incrementHex(slotKey(0, 'hashed')));
+    let nextHexValue = incrementHex(slotKey(0, 'hashed'));
+    await addStorage(nextHexValue);
+    /* 
+        second struct item (array - dynamic): value is length of array 
+    */
+    await addStorage(slotKey(1));
+    /* 
+        second struct item content (as much as fits in 32 bytes) 
+    */
+    await addStorage(slotKey(1, 'hashed'));
+    /* 
+        second struct item content (as much as fits in 32 bytes) 
+    */
+    nextHexValue = incrementHex(slotKey(1, 'hashed'));
+    await addStorage(nextHexValue);
 
     console.log('\ncustom storage trie root:\n');
     console.log(Buffer.from(trie.root));
