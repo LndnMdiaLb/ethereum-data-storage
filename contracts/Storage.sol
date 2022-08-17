@@ -3,11 +3,17 @@ pragma solidity >0.5.0 <=0.8.0;
 
 contract Storage {
     /* 
-        uint 256 is a 32 byte value 
+        fixed array that can fit in 32 bytes 
     */
-    uint8 slotUint8_1 = 1;
-    uint16 slotUint16_1 = 1;
-    // uint256 slotUint256_1 = 1;
-    // uint128 slotUint128_1 = 1;
-    uint32 slotUint32_1 = 1;
+    uint32[3] array32 = [1, 2, 3];
+
+    /* 
+        add for dynamic array that can fit in 32 bytes 
+    */
+    // uint32[] dynamicArray32 = [1, 2, 3];
+
+    /* 
+        add for dynamic array that doesn't fit in 32 bytes 
+    */
+    // uint128[] array128 = [1, 2, 3, 4];
 }

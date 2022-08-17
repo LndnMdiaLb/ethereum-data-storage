@@ -75,7 +75,19 @@ async function addStorage(key){
 }
 
 async function recreateTransactionTrie(){
+    /* 
+        fixed array that can fit in 32 bytes 
+    */
     await addStorage(slotKey(0));
+    /* 
+        add for dynamic array that can fit in 32 bytes 
+    */
+    // await addStorage(slotKey(0, 'hashed'));
+    /* 
+        add for dynamic array that doesn't fit in 32 bytes 
+    */
+    // await addStorage(incrementHex(slotKey(0, 'hashed')));
+
     console.log('\ncustom storage trie root:\n');
     console.log(Buffer.from(trie.root));
 };
