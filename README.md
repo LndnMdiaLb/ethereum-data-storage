@@ -1,19 +1,38 @@
 # Ethereum Data Storage
 
-An interactive walk through of the processes through which Ethereum encodes and serializes data structures into sequences of Bytes, stores them, and retrieves them. In this repository you will find information about **Recursive Length Prefix (RLP)** encoding, **Hex Prefix** encoding, **Merkle Patricia Tries** as well as examples of **Basic Radix Tries**
+An interactive walk through of the processes through which Ethereum encodes and serializes data structures into sequences of Bytes, stores them, and retrieves them. In this repository you will find information about **Recursive Length Prefix (RLP)** encoding, **Hex Prefix** encoding, **Merkle Patricia Tries** as well as examples of **Basic Radix Tries**. You will also find working examples of reconstructed Ethereum **Transaction Trie**, **Transaction Receipt Trie** as well as an example of a reconstructed **Storage Trie** powered by the use of Hardhat's in-process network.
 
-You will also find working examples of reconstructed Ethereum **Transaction Trie**, **Transaction Receipt Trie** as well as an example of a reconstructed **Storage Trie** powered by the use of Hardhat's in-process network.
+The github repo is designed to accompany the DeveloperDao Workshop recordings [part 1](https://www.youtube.com/watch?v=4WwbiFR71nA) and [part 2](https://www.youtube.com/watch?v=QvSl8B1j-yY).
+
+### Part 1 ([link](https://www.youtube.com/watch?v=4WwbiFR71nA))
+
+Intro & Concept Review [timecode 6:40](https://www.youtube.com/watch?v=4WwbiFR71nA&t=6m40s)
+
+RLP [timecode 13:02](https://www.youtube.com/watch?v=4WwbiFR71nA&t=13m2s)
+
+Trie, Radix Trie, Patricia Trie [timecode 51:30](https://www.youtube.com/watch?v=4WwbiFR71nA&t=51m30s)
+
+Merkle Patricia Trie [timecode 1:11:30](https://www.youtube.com/watch?v=4WwbiFR71nA&t=1h11m30s)
+
+### part 2 ([link](https://www.youtube.com/watch?v=QvSl8B1j-yY))
+
+Review & Elaboration of Part 1 Concepts [timecode 5:58](https://www.youtube.com/watch?v=QvSl8B1j-yY&t=5m57s)
+
+Tries used by Ethereum [timecode 34:57](https://www.youtube.com/watch?v=QvSl8B1j-yY&t=34m52s)
+
+The Transaction Trie [timecode 41:36](https://www.youtube.com/watch?v=QvSl8B1j-yY&t=41m36s)
+
+The Transaction Receipts Trie [timecode 1:07:00](https://www.youtube.com/watch?v=QvSl8B1j-yY&t=1h7m00s)
+
+The State and Storage Tries [timecode 1:08:35](https://www.youtube.com/watch?v=QvSl8B1j-yY&t=1h8m45s)
+
+Branches are structured in such a way as to build up knowledge. The branch order is the following.[`rlp`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/rlp), [`radix-trie`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/radix-trie), [`merkle-patricia-trie`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/merkle-patricia-trie), [`eth-txns-trie`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/eth-txns-trie), [`eth-txns-receipts-trie`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/eth-txns-receipts-trie), [`eth-storage-trie`](https://github.com/LndnMdiaLb/ethereum-data-storage/tree/eth-storage-trie). If you follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject.
 
 The Libraries used to varying degrees are:
 
-- [rlp](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/rlp)
-- [@ethereumjs/trie](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie)
-- [level](https://github.com/Level/level)
-- [@ethereumjs/tx](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/tx)
-- [ethers.js](https://github.com/ethers-io/ethers.js/)
-- [hardhat](https://github.com/NomicFoundation/hardhat)
+[rlp](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/rlp), [@ethereumjs/trie](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie), [level](https://github.com/Level/level), [@ethereumjs/tx](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/tx), [ethers.js](https://github.com/ethers-io/ethers.js/), [hardhat](https://github.com/NomicFoundation/hardhat)
 
-The repo is designed to accompany the DeveloperDao Workshop video recording. Branches are structured in such a way as to build up knowledge. The branch order is `rlp`, `radix-trie`, `merkle-patricia-trie`, `eth-txns-trie`, `eth-txns-receipts-trie`, `eth-storage-trie`. The complete file list is available on branch `master`. If you are follow along with the video recording you can use individual commits in each branch to follow the build up of files. Each individual branch has a README.md file specific to the subject while branch `master` contains all information.
+Reference material can be found [here](./REFERENCE.md)
 
 ## Fundamental Concepts Review
 
